@@ -354,7 +354,7 @@ func defaultPRUDPv0CalculateDataSignature(packet *PRUDPPacketV0, sessionKey []by
 
 func defaultPRUDPv0CalculateChecksum(packet *PRUDPPacketV0, data []byte) uint32 {
 	server := packet.server
-	checksum := sum[byte, uint32]([]byte(server.AccessKey))
+	checksum := sum[byte, uint32]([]byte(server.AccessKey)) & 0xFF
 
 	if server.PRUDPV0Settings.UseEnhancedChecksum {
 		padSize := (len(data) + 3) &^ 3
