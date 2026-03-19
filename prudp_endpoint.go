@@ -376,24 +376,27 @@ func (pep *PRUDPEndPoint) handleConnect(packet PRUDPPacketInterface) {
 		payload = stream.Bytes()
 	}
 
-	compressedPayload, err := connection.StreamSettings.CompressionAlgorithm.Compress(payload)
-	if err != nil {
-		logger.Error(err.Error())
-		return
-	}
-
-	var encryptedPayload []byte
-	if pep.Server.PRUDPV0Settings.EncryptedConnect {
-		encryptedPayload, err = connection.StreamSettings.EncryptionAlgorithm.Encrypt(compressedPayload)
+	if len(payload) != 0 {
+		compressedPayload, err := connection.StreamSettings.CompressionAlgorithm.Compress(payload)
 		if err != nil {
 			logger.Error(err.Error())
 			return
 		}
-	} else {
-		encryptedPayload = compressedPayload
+
+		var encryptedPayload []byte
+		if pep.Server.PRUDPV0Settings.EncryptedConnect {
+			encryptedPayload, err = connection.StreamSettings.EncryptionAlgorithm.Encrypt(compressedPayload)
+			if err != nil {
+				logger.Error(err.Error())
+				return
+			}
+		} else {
+			encryptedPayload = compressedPayload
+		}
+
+		ack.SetPayload(encryptedPayload)
 	}
 
-	ack.SetPayload(encryptedPayload)
 	ack.SetSignature(ack.CalculateSignature([]byte{}, packet.GetConnectionSignature()))
 
 	connection.ConnectionState = StateConnected
