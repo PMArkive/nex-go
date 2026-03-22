@@ -357,17 +357,19 @@ func (ps *PRUDPServer) sendPacket(packet PRUDPPacketInterface) {
 			slidingWindow := connection.SlidingWindow(packetCopy.SubstreamID())
 			payload := packetCopy.Payload()
 
-			compressedPayload, err := slidingWindow.streamSettings.CompressionAlgorithm.Compress(payload)
-			if err != nil {
-				logger.Error(err.Error())
-			}
+			if len(payload) != 0 {
+				compressedPayload, err := slidingWindow.streamSettings.CompressionAlgorithm.Compress(payload)
+				if err != nil {
+					logger.Error(err.Error())
+				}
 
-			encryptedPayload, err := slidingWindow.streamSettings.EncryptionAlgorithm.Encrypt(compressedPayload)
-			if err != nil {
-				logger.Error(err.Error())
-			}
+				encryptedPayload, err := slidingWindow.streamSettings.EncryptionAlgorithm.Encrypt(compressedPayload)
+				if err != nil {
+					logger.Error(err.Error())
+				}
 
-			packetCopy.SetPayload(encryptedPayload)
+				packetCopy.SetPayload(encryptedPayload)
+			}
 		} else {
 			// * PRUDPLite does not encrypt payloads, since they go over WSS
 			if packetCopy.Version() != 2 {
